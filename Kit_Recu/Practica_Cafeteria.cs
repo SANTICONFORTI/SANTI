@@ -110,6 +110,18 @@ namespace BLL
 {
     using DomainModel;
 
+    // La UI guarda a través de la BLL (nunca llama a la DAL directo)
+    public class PedidoBLL
+    {
+        private readonly DAL.PedidoDAL dal = new DAL.PedidoDAL();
+
+        public void Guardar(Pedido p)
+        {
+            if (p == null) throw new ArgumentNullException("p");
+            dal.Guardar(p);
+        }
+    }
+
     // ---- STRATEGY ----
     public interface IDescuento
     {
@@ -212,7 +224,6 @@ namespace BLL
 namespace UI
 {
     using DomainModel;
-    using DAL;
     using BLL;
 
     class Cajero
@@ -251,7 +262,7 @@ namespace UI
     class Barista
     {
         private readonly Bandeja bandeja;
-        private readonly PedidoDAL dal = new PedidoDAL();
+        private readonly PedidoBLL bll = new PedidoBLL();
 
         public Barista(Bandeja bandeja) { this.bandeja = bandeja; }
 
@@ -261,7 +272,7 @@ namespace UI
             while ((p = bandeja.Tomar()) != null)
             {
                 Thread.Sleep(500);            // preparar FUERA del lock
-                dal.Guardar(p);
+                bll.Guardar(p);
                 Console.WriteLine($"   Barista preparó #{p.Numero}: {p.Producto.Nombre} ${p.Total}");
             }
         }
